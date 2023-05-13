@@ -20,7 +20,7 @@ import { ModelDocument } from "@models/model";
 import { createModel } from "@/features/model/service/model.service";
 import { omit } from "lodash";
 import { convertModelToNode } from "@utils/flow";
-import { UpdateCanvasRequest } from "@schemas/canvas";
+import { UpdateDesignCanvasRequest, UpdateProjectCanvasRequest } from "@schemas/canvas";
 import { CanvasDocument } from "@models/canvas";
 import { CreateDesignRequest, GetDesignRequest, GetDesignsRequest } from "@schemas/design";
 import { DesignDocument } from "@models/design";
@@ -222,7 +222,7 @@ export async function getProjectDesignsHandler(
 }
 
 export async function updateProjectCanvasHandler(
-  req: Request<UpdateCanvasRequest["params"], Obj, UpdateCanvasRequest["body"]>,
+  req: Request<UpdateProjectCanvasRequest["params"], Obj, UpdateProjectCanvasRequest["body"]>,
   res: Response<LeanDocument<CanvasDocument & { _id: ObjectId }>>
 ) {
   try {
@@ -235,6 +235,28 @@ export async function updateProjectCanvasHandler(
     await updateCanvasNode({ _id: project.canvas }, nodes);
 
     const canvas = await findCanvas({ _id: project.canvas });
+
+    return res.send({ data: canvas });
+  } catch (error: unknown) {
+    logger.error(error);
+    return res.status(404).send({ error: errorObject(error) });
+  }
+}
+
+export async function updateProjectDesignCanvasHandler(
+  req: Request<UpdateDesignCanvasRequest["params"], Obj, UpdateDesignCanvasRequest["body"]>,
+  res: Response<LeanDocument<CanvasDocument & { _id: ObjectId }>>
+) {
+  try {
+    const design = await findDesign({ _id: req.params.design, project: req.params.project });
+    if (!design) {
+      throw new Error(DESIGN_NOT_FOUND);
+    }
+
+    const nodes: Array<Partial<Node>> = req.body.nodes;
+    await updateCanvasNode({ _id: design.canvas }, nodes);
+
+    const canvas = await findCanvas({ _id: design.canvas });
 
     return res.send({ data: canvas });
   } catch (error: unknown) {

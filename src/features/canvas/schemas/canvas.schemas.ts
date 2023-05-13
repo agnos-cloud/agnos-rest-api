@@ -1,4 +1,5 @@
 import {
+  DESIGN_ID_MISSING,
   NODE_ID_MISSING,
   NODE_POSITION_X_MISSING,
   NODE_POSITION_Y_MISSING,
@@ -6,7 +7,37 @@ import {
 } from "@constants/errors";
 import { object, TypeOf, number, string } from "zod";
 
-const params = {
+const body = {
+  body: object({
+    nodes: object({
+      id: string({
+        required_error: NODE_ID_MISSING,
+      }),
+      position: object({
+        x: number({
+          required_error: NODE_POSITION_X_MISSING,
+        }),
+        y: number({
+          required_error: NODE_POSITION_Y_MISSING,
+        }),
+      }).optional(),
+      data: object({}).optional(),
+    }).array(),
+  }),
+};
+
+const paramsForDesignCanvas = {
+  params: object({
+    design: string({
+      required_error: DESIGN_ID_MISSING,
+    }),
+    project: string({
+      required_error: PROJECT_ID_MISSING,
+    }),
+  }),
+};
+
+const paramsForProjectCanvas = {
   params: object({
     project: string({
       required_error: PROJECT_ID_MISSING,
@@ -47,24 +78,14 @@ const params = {
  *        data:
  *          $ref: '#/components/schemas/Canvas'
  */
-export const updateCanvasRequestSchema = object({
-  body: object({
-    nodes: object({
-      id: string({
-        required_error: NODE_ID_MISSING,
-      }),
-      position: object({
-        x: number({
-          required_error: NODE_POSITION_X_MISSING,
-        }),
-        y: number({
-          required_error: NODE_POSITION_Y_MISSING,
-        }),
-      }).optional(),
-      data: object({}).optional(),
-    }).array(),
-  }),
-  ...params,
+export const updateDesignCanvasRequestSchema = object({
+  ...body,
+  ...paramsForDesignCanvas,
+});
+export const updateProjectCanvasRequestSchema = object({
+  ...body,
+  ...paramsForProjectCanvas,
 });
 
-export type UpdateCanvasRequest = TypeOf<typeof updateCanvasRequestSchema>;
+export type UpdateDesignCanvasRequest = TypeOf<typeof updateDesignCanvasRequestSchema>;
+export type UpdateProjectCanvasRequest = TypeOf<typeof updateProjectCanvasRequestSchema>;
